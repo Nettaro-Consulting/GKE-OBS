@@ -1,21 +1,41 @@
-
+# argocd/app-of-apps.yaml
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
   name: observability-stack
   namespace: argocd
 spec:
-  project: default
-  source:
-    # SUSTITUYE ESTA LÍNEA CON LA URL DE TU REPOSITORIO GIT
-    repoURL: https://github.com/Nettaro-Consulting/GKE-OBS.git
-    targetRevision: main
-    path: apps
-  destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
+  # El 'generator' encuentra las carpetas que se convertirán en aplicaciones
+  generators:
+  - git:
+      repoURL: https://github.com/Nettaro-Consulting/GKE-OBS.git # Esta es tu URL
+      revision: main
+      # Le decimos que busque todas las carpetas directas dentro de 'apps/'
+      directories:
+      - path: apps/*
+  # El 'template' es la plantilla que se usará para crear cada aplicación encontrada
+  template:
+    metadata:
+      # El nombre de la aplicación será el nombre de la carpeta (ej. 'prometheus')
+      name: '{{path.basename}}'
+      namespace: argocd
+    spec:
+      project: "default"
+      source:
+        repoURL: https://github.com/Nettaro-Consulting/GKE-OBS.git # Tu URL de nuevo
+        targetRevision: main
+        # La ruta de la aplicación será la carpeta encontrada (ej. 'apps/prometheus')
+        path: '{{path}}'
+        helm:
+          valueFiles:
+          - values.yaml
+      destination:
+        server: "https://kubernetes.default.svc"
+        # El namespace donde se despliega se basa en el nombre de la app
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
