@@ -1,0 +1,28 @@
+[cite_start]# [cite: 90-117]
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard-rwo
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    retention: 30d
+    #Configuración para GKE Autopilot
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2
+        memory: 4Gi
+# ServiceMonitors adicionales
+additionalServiceMonitors:
+- name: otel-collector
+  selector:
+    matchLabels:
+      app: otel-collector
+  endpoints:
+  - port: metrics

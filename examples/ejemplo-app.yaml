@@ -1,0 +1,56 @@
+[cite_start]# [cite: 576-630]
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ejemplo-app
+  namespace: default
+  labels:
+    app: ejemplo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ejemplo-app
+  template:
+    metadata:
+      labels:
+        app: ejemplo-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: app
+        image: tu-registry/ejemplo-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector.observability.svc.cluster.local:4317"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "service.name=ejemplo-app,service.version=1.0.0"
+        - name: OTEL_EXPORTER_OTLP_INSECURE
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ejemplo-app
+  namespace: default
+  labels:
+    app: ejemplo-app
+spec:
+  selector:
+    app: ejemplo-app
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http

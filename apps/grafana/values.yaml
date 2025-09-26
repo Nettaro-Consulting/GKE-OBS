@@ -1,0 +1,63 @@
+[cite_start]# [cite: 372-433]
+# !!! ADVERTENCIA: No uses esta contraseña en producción !!!
+adminPassword: admin123
+persistence:
+  enabled: true
+  storageClassName: standard-rwo
+  size: 10Gi
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+      access: proxy
+      isDefault: true
+    - name: Loki
+      type: loki
+      url: http://loki.logging.svc.cluster.local:3100
+      access: proxy
+    - name: Jaeger
+      type: jaeger
+      url: http://jaeger-query.tracing.svc.cluster.local:16686
+      access: proxy
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/default
+dashboards:
+  default:
+    kubernetes-cluster:
+      gnetId: 7249
+      revision: 1
+      datasource: Prometheus
+    kubernetes-pods:
+      gnetId: 6417
+      revision: 1
+      datasource: Prometheus
+    jaeger-tracing:
+      gnetId: 10001
+      revision: 1
+      datasource: Jaeger
+plugins:
+- grafana-piechart-panel
+- grafana-worldmap-panel
+env:
+  GF_EXPLORE_ENABLED: true
+  GF_PANELS_DISABLE_SANITIZE_HTML: true

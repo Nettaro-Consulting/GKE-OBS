@@ -1,0 +1,40 @@
+[cite_start]# [cite: 817-856]
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: observability-stack
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Observability Stack"
+spec:
+  tls:
+  - hosts:
+    - grafana.tu-empresa.com
+    - prometheus.tu-empresa.com
+    secretName: observability-tls
+  rules:
+  - host: grafana.tu-empresa.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 80
+  - host: prometheus.tu-empresa.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-kube-prometheus-prometheus
+            port:
+              number: 9090

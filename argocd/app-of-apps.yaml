@@ -1,0 +1,23 @@
+[cite_start]# [cite: 65-86]
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-stack
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # !!! IMPORTANTE: REEMPLAZA ESTA LÍNEA CON LA URL DE TU PROPIO REPOSITORIO GIT !!!
+    repoURL: https://github.com/tu-usuario/observability-stack.git
+    targetRevision: main
+    path: apps
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

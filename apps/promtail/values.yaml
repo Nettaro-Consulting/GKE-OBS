@@ -1,0 +1,26 @@
+[cite_start]# [cite: 463-546]
+config:
+  lokiAddress: http://loki.logging.svc.cluster.local:3100/loki/api/v1/push
+  snippets:
+    pipelineStages: []
+    scrapeConfigs: |
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_controller_name]
+          regex: ([0-9a-z-.]+?)(-[0-9a-f]{8,10})?
+          target_label: __tmp_controller_name
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name, __meta_kubernetes_pod_label_app, __tmp_controller_name, __meta_kubernetes_pod_name]
+          regex: ^;*([^;]+)(;.*)?$
+          target_label: app
+          replacement: $1
+        - source_labels: [__meta_kubernetes_pod_node_name]
+          target_label: node_name
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
